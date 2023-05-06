@@ -1,12 +1,18 @@
 const Cache = require("node-cache");
-const cryptoCache = new Cache({ stdTTL: 60 * 5 });
+//-1 to persist forever
+const cacheLifeInSecond = 60 * 5;
 
-const cacheMiddleware = (req, res, next) => {
+//This object is the Cache intiself, you need to import it to get, set, or check data
+const cryptoCache = new Cache({ stdTTL: cacheLifeInSecond });
+
+//this is th middleware that use the cache that we just created
+const cacheMiddlewarePost = (req, res, next) => {
     try {
-        const originalUrl = req.originalUrl;
+        const {cacheKey} = req.body;
 
-        if (cryptoCache.has(originalUrl)) {
-            return res.send(cryptoCache.get(originalUrl)).status(200);
+        if (cryptoCache.has(cacheKey)) {
+            console.log("using middleware cache!");
+            return res.send(cryptoCache.get(cacheKey)).status(200);
         }
         return next();
     } catch (err) {
@@ -15,7 +21,23 @@ const cacheMiddleware = (req, res, next) => {
     }
 };
 
+const cacheMiddlewareGet = (req, res, next) => {
+    try {
+        const {cacheKey} = req.query ;
+
+        // if (cryptoCache.has(cacheKey)) {
+        //     console.log("using middleware cache!");
+        //     return res.send(cryptoCache.get(cacheKey)).status(200);
+        // }
+        return next();
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+};
+
 module.exports = {
-    cacheMiddleware,
+    cacheMiddlewarePost,
+    cacheMiddlewareGet,
     cryptoCache,
 };
